@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trump Permanent - 15 Games Final</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:linear-gradient(180deg,#0f4a3a,#0a2e24);min-height:100vh;color:#fff;padding:12px}
+.card{background:#123e33;border-radius:14px;padding:14px;margin:10px auto;max-width:500px;border:1px solid #1f6b55;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+h1{font-size:16px;text-align:center;margin:6px 0 12px;color:#ffe082}
+input{width:100%;padding:10px;border-radius:8px;border:none;margin:6px 0;background:#fff;color:#000;font-size:14px}
+.btn{padding:10px 16px;border-radius:8px;border:none;font-weight:700;cursor:pointer;margin:4px;font-size:13px}
+.btn-yellow{background:#ffca28;color:#000}
+.btn-green{background:#2e7d32;color:#fff}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.hidden{display:none}
+#table{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.player{border:1px solid #2a7a64;border-radius:10px;padding:8px;background:#0e3a2e;text-align:center}
+.trump{color:#ff5252;font-weight:800}
+.hand{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:8px}
+.c{width:38px;height:52px;background:#fff;color:#000;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;border:2px solid transparent}
+.c.sel{border-color:#ffca28;transform:translateY(-6px)}
+.c.red{color:#d32f2f}
+.msg{background:#0c2f24;padding:8px;border-radius:8px;margin:6px 0;font-size:13px;border-left:3px solid #ffca28}
+</style>
+</head>
+<body>
+<h1>🃏 Trump Permanent - 15 Games Final</h1>
+
+<div id="screen1" class="card">
+  <input id="nameIn" placeholder="Naam: A / B / C / D">
+  <div class="row"><button class="btn btn-yellow" onclick="createRoom()">ROOM BANAO</button></div>
+  <div class="row" style="margin-top:8px">
+    <input id="roomIdIn" placeholder="Room ID" style="flex:1">
+    <button class="btn btn-yellow" onclick="joinRoom()">JOIN</button>
+  </div>
+  <div id="status1" class="msg">Naam likho fir Room Banao dabao</div>
+</div>
+
+<div id="screen2" class="card hidden">
+  <div>Room ID: <b id="roomShow"></b> <button class="btn btn-yellow" onclick="copyId()" style="padding:4px 8px">COPY</button></div>
+  <div id="playersList" style="margin:8px 0"></div>
+  <div id="trumpChoose">
+    <div class="msg">Trump choose karo:</div>
+    <div class="row"><button class="btn btn-green" onclick="setTrump('♠')">♠ Spade</button><button class="btn btn-green" onclick="setTrump('♥')">♥ Heart</button><button class="btn btn-green" onclick="setTrump('♦')">♦ Diamond</button><button class="btn btn-green" onclick="setTrump('♣')">♣ Club</button></div>
+  </div>
+  <button id="startBtn" class="btn btn-yellow" onclick="startGame()">GAME START</button>
+  <div id="status2" class="msg"></div>
+</div>
+
+<div id="screen3" class="card hidden">
+  <div>Room: <b id="roomShow2"></b> | Trump: <span id="trumpShow" class="trump"></span> | Tum: <b id="youShow"></b></div>
+  <div id="table"></div>
+  <div id="centerPile" class="row" style="justify-content:center;margin:10px 0;min-height:60px;border:1px dashed #2a7a64;border-radius:10px;padding:6px"></div>
+  <div>Apke Patte:</div>
+  <div id="hand" class="hand"></div>
+  <div id="status3" class="msg">Apni bari ka wait karo</div>
+  <button class="btn btn-yellow" onclick="location.reload()">Naya Game</button>
+</div>
+
+<script>
+let myName="", roomId="", players=[], trump="", myHand=[], center=[], turn=0;
+const suits=["♠","♥","♦","♣"]; const ranks=["A","K","Q","J","10","9","8","7","6","5","4","3","2"];
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function createRoom(){
+  myName=document.getElementById('nameIn').value.trim();
+  if(!myName){alert('Pehle naam likho!');return}
+  roomId='TRUMP'+(rnd(9000)+1000);
+  players=[myName,'Bot-B','Bot-C','Bot-D'];
+  document.getElementById('roomShow').innerText=roomId;
+  show('screen2'); showPlayers();
+  document.getElementById('status2').innerText='Room ban gaya! Trump choose karo';
+}
+function joinRoom(){
+  myName=document.getElementById('nameIn').value.trim();
+  let id=document.getElementById('roomIdIn').value.trim();
+  if(!myName||!id){alert('Naam aur Room ID dono likho');return}
+  roomId=id; players=[myName,'Host','Bot-C','Bot-D'];
+  document.getElementById('roomShow').innerText=roomId;
+  show('screen2'); showPlayers();
+  document.getElementById('status2').innerText='Join ho gaye!';
+}
+function showPlayers(){
+  let h=players.map((p,i)=>`<div style="padding:4px">${i==0?'👉 ':''}${p} ${i==0?'(You)':''}</div>`).join('');
+  document.getElementById('playersList').innerHTML=h;
+}
+function setTrump(s){trump=s;document.getElementById('status2').innerText='Trump set: '+s+' . Ab Start dabao';}
+function startGame(){
+  if(!trump){alert('Pehle Trump choose karo');return}
+  document.getElementById('roomShow2').innerText=roomId;
+  document.getElementById('trumpShow').innerText=trump;
+  document.getElementById('youShow').innerText=myName;
+  let deck=[]; for(let su of suits){for(let r of ranks){deck.push({s:su,r:r,v:ranks.indexOf(r)})}}
+  shuffle(deck);
+  myHand=deck.slice(0,13);
+  show('screen3');
+  render();
+}
+function show(id){
+  document.getElementById('screen1').classList.add('hidden');
+  document.getElementById('screen2').classList.add('hidden');
+  document.getElementById('screen3').classList.add('hidden');
+  document.getElementById(id).classList.remove('hidden');
+}
+function render(){
+  document.getElementById('table').innerHTML=players.map(p=>`<div class="player">${p}<br><span id="p-${p}">-</span></div>`).join('');
+  let h=document.getElementById('hand'); h.innerHTML='';
+  myHand.forEach((c,i)=>{
+    let d=document.createElement('div'); d.className='c'+(c.s=='♥'||c.s=='♦'?' red':'');
+    d.innerText=c.r+c.s; d.onclick=()=>playCard(i); h.appendChild(d);
+  });
+  document.getElementById('centerPile').innerHTML=center.map(c=>`<div class="c ${c.s=='♥'||c.s=='♦'?'red':''}">${c.r}${c.s}</div>`).join('') || '<small style="opacity:.6">Table khali</small>';
+}
+function playCard(i){
+  let c=myHand.splice(i,1)[0]; center.push({...c,who:myName});
+  let el=document.getElementById(`p-${myName}`); if(el) el.innerText=c.r+c.s;
+  render();
+  if(center.length<4){ setTimeout(botPlay,600);} else { setTimeout(endRound,800);}
+}
+function botPlay(){
+  if(center.length>=4)return;
+  let idx=center.length; let who=players[idx];
+  let card={s:suits[rnd(4)],r:ranks[rnd(13)]}; center.push({...card,who});
+  let el=document.getElementById(`p-${who}`); if(el) el.innerText=card.r+card.s;
+  render();
+  if(center.length<4){ setTimeout(botPlay,600);} else { setTimeout(endRound,800);}
+}
+function endRound(){
+  let lead=center[0].s; let win=center[0];
+  for(let c of center){
+    if(c.s==trump && win.s!=trump) win=c;
+    else if(c.s==trump && win.s==trump && c.v < win.v) win=c;
+    else if(win.s!=trump && c.s==lead && c.v < win.v) win=c;
+  }
+  document.getElementById('status3').innerText=`Round winner: ${win.who} - ${win.r}${win.s}`;
+  center=[]; 
+  if(myHand.length==0){document.getElementById('status3').innerText='Game khatam! Naya Game dabao'; return}
+  render();
+}
+function copyId(){ navigator.clipboard.writeText(roomId); alert('Copy: '+roomId)}
+</script>
+</body>
+</html>
